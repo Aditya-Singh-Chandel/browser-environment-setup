@@ -56,7 +56,7 @@ cd browser-environment-setup
 
 **3. Inside the VM (after installing MSB and copying this folder):**
 ```cmd
-Right-click INSTALL.cmd → Run as administrator
+Double-click INSTALL.cmd (auto-elevates to Administrator)
 ```
 
 **4. Verify anytime:**
@@ -74,9 +74,10 @@ See [GUIDE.md](GUIDE.md) for the complete step-by-step walkthrough.
 ├── README.md              ← you are here
 ├── GUIDE.md               ← step-by-step guide
 ├── DEEP-DIVE.md           ← full technical explanation
-├── INSTALL.cmd            ← one-click patcher with verification (inside VM)
-├── VERIFY.cmd             ← diagnostic verification tool (inside VM)
-├── patch_vmx.ps1          ← VMX anti-detection patcher (run on host)
+├── INSTALL.cmd            ← one-click patcher with auto-elevate (inside VM)
+├── INSTALL.ps1            ← PowerShell installer (called by INSTALL.cmd)
+├── VERIFY.cmd             ← diagnostic verification tool with auto-elevate (inside VM)
+├── VERIFY.ps1             ← PowerShell verifier (called by VERIFY.cmd)
 ├── fix_isolation.ps1      ← re-enables VMX isolation settings
 ├── tools/
 │   ├── bin/               ← compiled patchers + DLLs (self-contained)

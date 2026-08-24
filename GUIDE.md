@@ -128,7 +128,7 @@ You must copy the `browser-environment-setup` folder into the virtual machine. C
 
 1. Open File Explorer **inside the VM**.
 2. Open the `browser-environment-setup` folder (wherever you pasted it in Step 4).
-3. **Right-click `INSTALL.cmd` → select "Run as administrator"**.
+3. **Double-click `INSTALL.cmd`**. It will automatically request Administrator privileges (click **Yes** on the UAC prompt).
 4. The script will automatically:
    - Stop any running browser processes/services to prevent file lock errors.
    - Auto-detect MSB / SEB install location (both 64-bit and 32-bit paths).
@@ -148,7 +148,7 @@ You must copy the `browser-environment-setup` folder into the virtual machine. C
    [PASS] IsVirtualRegistry    -> Disabled (returns false)
    [PASS] IsVirtualSystem      -> Disabled (returns false)
    ```
-6. Press any key to close the window.
+6. Press Enter to close the window.
 
 ---
 
@@ -168,7 +168,7 @@ If your test requires webcam/audio proctoring:
 ## Step 7 — Launch & Test
 
 1. **Verify Environment (Optional but Recommended)**:
-   - Inside the VM, double-click **`VERIFY.cmd`** (or right-click → Run as administrator).
+   - Inside the VM, **double-click `VERIFY.cmd`**. It auto-elevates.
    - Confirm it outputs `VERDICT: [READY FOR EXAM]`.
 2. Launch MSB inside the VM (either from your exam link in Edge or the desktop icon).
 3. **Sticky Keys / SEB Locked Red Screen**:
@@ -201,9 +201,9 @@ Make sure both layers of protection are active:
 3. Check `install_log.txt` or `verify_log.txt` in the toolkit folder to see the exact logs.
 
 ### 2. `INSTALL.cmd` closes immediately
-- Ensure you right-click `INSTALL.cmd` and select **"Run as administrator"**.
+- Just **double-click** `INSTALL.cmd` — it auto-elevates to Administrator.
 - Ensure MSB is installed inside the VM before running `INSTALL.cmd`.
-- Check `install_log.txt` created in the same folder for detailed diagnostic errors.
+- Check `install_log.txt` in the toolkit folder for detailed diagnostic logs.
 
 ### 3. `patch_vmx.ps1` gives "Execution of scripts is disabled"
 Run this command in PowerShell before executing the script:
