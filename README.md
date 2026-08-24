@@ -5,42 +5,43 @@
 
 ---
 
-## Quick navigation
+## Quick Navigation
 
 | File | Purpose |
 |------|---------|
 | [GUIDE.md](GUIDE.md) | **Start here** — step-by-step, 15 minutes to working |
 | [DEEP-DIVE.md](DEEP-DIVE.md) | Full technical explanation of how everything works |
-| [INSTALL.cmd](INSTALL.cmd) | One-click patcher — run inside the VM as Admin |
-| [patch_vmx.ps1](patch_vmx.ps1) | Auto-patches your VMX file — run on the host |
+| [INSTALL.cmd](INSTALL.cmd) | One-click patcher & verification report — run inside the VM as Admin |
+| [VERIFY.cmd](VERIFY.cmd) | Diagnostic tool to verify VM environment & patch status anytime |
+| [patch_vmx.ps1](patch_vmx.ps1) | Auto-patches your VMX file with anti-detection settings — run on host |
 | [tools/bin/](tools/bin/) | All binaries bundled (DisplayPatcher, seb-patcher, DLLs) |
 | [optional-tools/](optional-tools/) | Python tools: env scanner, log cleaner, diagnostics |
 
 ---
 
-## How it works (30-second summary)
+## How It Works (30-Second Summary)
 
 ```
 Your PC  →  VMware window  →  Windows VM  →  MSB (patched)
-                                               ✓ VM detection disabled
-                                               ✓ Fake internal display
-                                               ✓ Looks like real hardware
+                                               ✓ All 7 VM detection checks neutralized
+                                               ✓ Fake internal display injected
+                                               ✓ SMBIOS & hardware reflected from host
 ```
 
 MSB is built on Safe Exam Browser (.NET). Its VM detection is unobfuscated IL bytecode — we rewrite it directly using `DisplayPatcher.exe` and `seb-patcher.exe` without needing source code.
 
 ---
 
-## What you need
+## What You Need
 
-- VMware Workstation Player 17+
+- VMware Workstation Player / Pro 17+
 - Windows 10/11 ISO for the VM
 - Mettl exam link (to install MSB inside the VM)
 - This toolkit folder (all binaries and scripts pre-bundled)
 
 ---
 
-## Setup (short version)
+## Setup (Short Version)
 
 **1. Download toolkit on host:**
 ```powershell
@@ -48,29 +49,35 @@ git clone https://github.com/Aditya-Singh-Chandel/browser-environment-setup.git
 cd browser-environment-setup
 ```
 
-**2. Patch your VM (host machine, VM powered off):**
+**2. Patch your VM (host machine, VM completely powered off):**
 ```powershell
-.\patch_vmx.ps1   # auto-patches your .vmx file
+.\patch_vmx.ps1   # auto-patches your .vmx file with anti-detection settings
 ```
 
 **3. Inside the VM (after installing MSB and copying this folder):**
-```
+```cmd
 Right-click INSTALL.cmd → Run as administrator
 ```
 
-That's it. See [GUIDE.md](GUIDE.md) for the complete step-by-step walkthrough.
+**4. Verify anytime:**
+```cmd
+Double-click VERIFY.cmd
+```
+
+See [GUIDE.md](GUIDE.md) for the complete step-by-step walkthrough.
 
 ---
 
-## Folder structure
+## Folder Structure
 
 ```
 ├── README.md              ← you are here
 ├── GUIDE.md               ← step-by-step guide
 ├── DEEP-DIVE.md           ← full technical explanation
-├── INSTALL.cmd            ← one-click patcher (run inside VM as Admin)
-├── patch_vmx.ps1          ← VMX patcher (run on host)
-├── fix_isolation.ps1      ← re-applies VMX isolation settings
+├── INSTALL.cmd            ← one-click patcher with verification (inside VM)
+├── VERIFY.cmd             ← diagnostic verification tool (inside VM)
+├── patch_vmx.ps1          ← VMX anti-detection patcher (run on host)
+├── fix_isolation.ps1      ← re-enables VMX isolation settings
 ├── tools/
 │   ├── bin/               ← compiled patchers + DLLs (self-contained)
 │   │   ├── DisplayPatcher.exe

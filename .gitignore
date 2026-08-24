@@ -28,4 +28,5 @@ report.json
 # Temporary
 *.tmp
 *.log
+*_log.txt
 _tmp_*/

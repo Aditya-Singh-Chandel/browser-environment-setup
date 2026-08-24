@@ -14,9 +14,9 @@
 | [Step 2](#step-2--patch-the-vmx-file-host-pc) | **Host PC** | Run PowerShell script to patch VM config (`.vmx`) | 1 min |
 | [Step 3](#step-3--start-vm--install-msb-inside-vm) | **Inside VM** | Boot VM and install MSB software | 3 mins |
 | [Step 4](#step-4--copy-toolkit-folder-into-vm) | **Host & VM** | Transfer `browser-environment-setup` folder into VM | 2 mins |
-| [Step 5](#step-5--run-one-click-patch-inside-vm) | **Inside VM** | Run `INSTALL.cmd` as Administrator | 1 min |
+| [Step 5](#step-5--run-one-click-patch-inside-vm) | **Inside VM** | Run `INSTALL.cmd` as Administrator & verify | 1 min |
 | [Step 6](#step-6--configure-webcam--microphone) | **VMware** | Connect host webcam and mic to VM | 1 min |
-| [Step 7](#step-7--launch--test) | **Inside VM** | Start MSB and verify everything passes | 2 mins |
+| [Step 7](#step-7--launch--test) | **Inside VM** | Run `VERIFY.cmd`, then start MSB | 2 mins |
 | [Step 8](#step-8--post-test-cleanup) | **Inside VM** | Clear log files after completing test | 30 secs |
 
 ---
@@ -70,6 +70,9 @@ git clone https://github.com/Aditya-Singh-Chandel/browser-environment-setup.git
 
 With the virtual machine turned **OFF**, patch the VM's `.vmx` configuration file on your host machine:
 
+> [!IMPORTANT]
+> The virtual machine **MUST be completely powered off** before running this step. If VMware is running, it will overwrite the file and erase the anti-detection settings upon exit.
+
 1. On your host machine, open **PowerShell** in the `browser-environment-setup` folder:
    - *Tip: Open the folder in File Explorer, type `powershell` in the address bar, and press Enter.*
 2. If PowerShell script execution is restricted on your laptop, run this once:
@@ -80,12 +83,12 @@ With the virtual machine turned **OFF**, patch the VM's `.vmx` configuration fil
    ```powershell
    .\patch_vmx.ps1
    ```
-   *The script will automatically detect your VM and apply the required hardware reflection and isolation settings.*
+   *The script will automatically detect your VM, check for locks, create a `.bak` backup, and apply hardware reflection, CPUID cloaking, and backdoor restriction settings.*
 4. *(Optional manual path)*: If you have VMs in custom locations, pass the exact `.vmx` path:
    ```powershell
    .\patch_vmx.ps1 -VmxPath "C:\Users\<YourUsername>\Documents\Virtual Machines\Windows10_Exam\Windows10_Exam.vmx"
    ```
-5. You should see `SUCCESS! VMX patched`.
+5. You should see `SUCCESS! VMX Anti-Detection Configuration Applied!`.
 
 ---
 
@@ -127,12 +130,25 @@ You must copy the `browser-environment-setup` folder into the virtual machine. C
 2. Open the `browser-environment-setup` folder (wherever you pasted it in Step 4).
 3. **Right-click `INSTALL.cmd` → select "Run as administrator"**.
 4. The script will automatically:
-   - Create required SEB application folders.
+   - Stop any running browser processes/services to prevent file lock errors.
+   - Auto-detect MSB / SEB install location (both 64-bit and 32-bit paths).
    - Backup original DLLs.
    - Run `DisplayPatcher.exe` to configure virtual display & patch Sticky Keys.
    - Run `seb-patcher.exe` to neutralize VM detection checks.
    - Start the background `MSB Windows Service`.
-5. When finished, you will see `ALL DONE!`. Press any key to close the window.
+   - **Run a 7-point automatic verification report** checking all detection methods.
+   - Save full output to `install_log.txt`.
+5. When finished, you will see a detailed green verification summary:
+   ```
+   [PASS] IsVirtualMachine     -> Disabled (returns false)
+   [PASS] HasNoSystemHardware  -> Disabled (returns false)
+   [PASS] HasVirtualDevice     -> Disabled (returns false)
+   [PASS] HasVirtualMacAddress -> Disabled (returns false)
+   [PASS] IsVirtualCpu         -> Disabled (returns false)
+   [PASS] IsVirtualRegistry    -> Disabled (returns false)
+   [PASS] IsVirtualSystem      -> Disabled (returns false)
+   ```
+6. Press any key to close the window.
 
 ---
 
@@ -151,11 +167,14 @@ If your test requires webcam/audio proctoring:
 
 ## Step 7 — Launch & Test
 
-1. Launch MSB inside the VM (either from your exam link in Edge or the desktop icon).
-2. **Sticky Keys / SEB Locked Red Screen**:
+1. **Verify Environment (Optional but Recommended)**:
+   - Inside the VM, double-click **`VERIFY.cmd`** (or right-click → Run as administrator).
+   - Confirm it outputs `VERDICT: [READY FOR EXAM]`.
+2. Launch MSB inside the VM (either from your exam link in Edge or the desktop icon).
+3. **Sticky Keys / SEB Locked Red Screen**:
    - If a red screen appears mentioning Sticky Keys or SEB locked, simply click the **Unlock** button (no password is set or required).
-3. The environment will pass all checks and launch into the test interface.
-4. **Switching between VM and Host**:
+4. The environment will pass all checks and launch into the test interface.
+5. **Switching between VM and Host**:
    - Press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Enter</kbd> to toggle VM fullscreen mode.
    - Press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> to release cursor control back to your host OS at any time.
 
@@ -175,21 +194,27 @@ Once you have finished and submitted your test:
 
 ## Troubleshooting & FAQ
 
-### 1. `patch_vmx.ps1` gives "Execution of scripts is disabled on this system"
+### 1. "Virtual Machine Detected" appears when opening the test
+Make sure both layers of protection are active:
+1. **Host-Side VMX Patch**: Did you power off the VM before running `.\patch_vmx.ps1`? If the VM was powered on or suspended, VMware wiped your changes. Shut down the VM completely, re-run `.\patch_vmx.ps1`, and power back on.
+2. **Guest-Side DLL Patch**: Run **`VERIFY.cmd`** inside the VM. If any checks show `[FAIL]`, right-click **`INSTALL.cmd` → "Run as administrator"** to re-apply the patches.
+3. Check `install_log.txt` or `verify_log.txt` in the toolkit folder to see the exact logs.
+
+### 2. `INSTALL.cmd` closes immediately
+- Ensure you right-click `INSTALL.cmd` and select **"Run as administrator"**.
+- Ensure MSB is installed inside the VM before running `INSTALL.cmd`.
+- Check `install_log.txt` created in the same folder for detailed diagnostic errors.
+
+### 3. `patch_vmx.ps1` gives "Execution of scripts is disabled"
 Run this command in PowerShell before executing the script:
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
-### 2. "Virtual Machine Detected" error appears in MSB
-Make sure you ran the steps in order:
-1. Verify the VM was completely **powered off** when you ran `.\patch_vmx.ps1` on your host.
-2. Ensure you ran `INSTALL.cmd` **as Administrator** inside the VM.
+### 4. "Fatal Error: MSB could not start"
+Run `INSTALL.cmd` as Administrator to restore from the automatic backup and re-patch in the proper order.
 
-### 3. "Fatal Error: MSB could not start"
-This happens if patch order was altered manually. Run `INSTALL.cmd` as Administrator to restore and re-patch automatically.
-
-### 4. MSB Service Error
+### 5. MSB Service Error
 If MSB complains that its background service is not running, open `cmd.exe` as Administrator inside the VM and run:
 ```cmd
 net start "MSB Windows Service"
