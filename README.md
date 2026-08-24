@@ -42,17 +42,23 @@ MSB is built on Safe Exam Browser (.NET). Its VM detection is unobfuscated IL by
 
 ## Setup (short version)
 
-**On your host (VM off):**
+**1. Download toolkit on host:**
+```powershell
+git clone https://github.com/Aditya-Singh-Chandel/browser-environment-setup.git
+cd browser-environment-setup
+```
+
+**2. Patch your VM (host machine, VM powered off):**
 ```powershell
 .\patch_vmx.ps1   # auto-patches your .vmx file
 ```
 
-**Inside the VM (after installing MSB):**
+**3. Inside the VM (after installing MSB and copying this folder):**
 ```
 Right-click INSTALL.cmd → Run as administrator
 ```
 
-That's it. See [GUIDE.md](GUIDE.md) for the full walkthrough.
+That's it. See [GUIDE.md](GUIDE.md) for the complete step-by-step walkthrough.
 
 ---
 
