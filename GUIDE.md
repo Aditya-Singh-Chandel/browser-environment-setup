@@ -109,22 +109,22 @@ You must copy the `browser-environment-setup` folder into the virtual machine. C
   1. Copy the `browser-environment-setup` folder onto a USB flash drive on your host PC.
   2. Plug the USB into your laptop.
   3. In VMware top menu: **VM / Player** → **Removable Devices** → select your USB → **Connect (Disconnect from host)**.
-  4. Inside the VM, open the USB drive and copy the folder to `C:\seb_patch\`.
+  4. Inside the VM, open the USB drive and copy the `browser-environment-setup` folder to `C:\` (or Desktop).
 * **Method B (Direct Download inside VM)**:
   1. Open Edge inside the VM.
-  2. Download the ZIP directly or clone with Git to `C:\seb_patch\`.
+  2. Download the ZIP directly or clone with Git to `C:\` or Desktop.
 * **Method C (Drag & Drop)**:
-  1. Drag the folder directly into the VM window before isolation settings take effect.
+  1. Drag the `browser-environment-setup` folder directly from your host into the VM window.
 
-> [!IMPORTANT]
-> The folder contents should be located at `C:\seb_patch\` (or any folder on `C:`) inside the VM.
+> [!NOTE]
+> You do **not** need to create any special folder in advance. You can paste the `browser-environment-setup` folder anywhere (e.g. `C:\browser-environment-setup` or on your VM Desktop).
 
 ---
 
 ## Step 5 — Run One-Click Patch (Inside VM)
 
 1. Open File Explorer **inside the VM**.
-2. Navigate to `C:\seb_patch\` (where `INSTALL.cmd` is located).
+2. Open the `browser-environment-setup` folder (wherever you pasted it in Step 4).
 3. **Right-click `INSTALL.cmd` → select "Run as administrator"**.
 4. The script will automatically:
    - Create required SEB application folders.

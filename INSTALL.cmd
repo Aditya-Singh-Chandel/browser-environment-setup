@@ -1,7 +1,6 @@
 @echo off
 :: INSTALL.cmd — Run INSIDE the VM as Administrator
-:: Copies tools from shared folder or USB, then runs the patch sequence.
-:: Place this folder at C:\seb_patch\ inside the VM, then run this script.
+:: Place this toolkit folder anywhere inside the VM, then run this script.
 
 title Environment Setup Tool
 
