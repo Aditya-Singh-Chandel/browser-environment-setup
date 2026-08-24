@@ -6,7 +6,7 @@ Configure a virtual machine environment with proper display and compatibility se
 for safe browser environments.
 
 > **This folder is fully self-contained.** All required tools are bundled in `tools\bin\`.
-> No internet connection or external repo needed inside the VM.
+> Works completely offline inside the VM.
 
 | Document | Purpose |
 |----------|---------|

@@ -1,7 +1,7 @@
 # Browser Environment Setup (VMware Compatibility)
 
 > Virtual machine environment setup and display configuration for browser environments.
-> **Self-contained — no external repos, no internet needed inside the VM.**
+> **Self-contained — fully offline and pre-packaged.**
 
 ---
 
@@ -36,7 +36,7 @@ MSB is built on Safe Exam Browser (.NET). Its VM detection is unobfuscated IL by
 - VMware Workstation Player 17+
 - Windows 10/11 ISO for the VM
 - Mettl exam link (to install MSB inside the VM)
-- This repo (everything else is bundled)
+- This toolkit folder (all binaries and scripts pre-bundled)
 
 ---
 
