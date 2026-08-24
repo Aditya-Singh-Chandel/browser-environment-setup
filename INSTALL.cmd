@@ -1,8 +1,7 @@
 @echo off
-setlocal EnableDelayedExpansion
+cd /d "%~dp0"
 title MSB / SEB Environment Setup Tool
 
-:: Setup log file in current directory
 set "LOGFILE=%~dp0install_log.txt"
 echo ============================================================ > "%LOGFILE%"
 echo   Browser Environment Setup Log - %DATE% %TIME% >> "%LOGFILE%"
@@ -14,7 +13,9 @@ echo   Browser Environment Setup - One-Click Configuration
 echo ============================================================
 echo.
 
-:: ── Step 1: Check for Admin rights ──────────────────────────────
+REM ------------------------------------------------------------
+REM Step 1: Check for Admin rights
+REM ------------------------------------------------------------
 echo [*] Checking Administrator privileges...
 net session >nul 2>&1
 if %errorlevel% neq 0 (
@@ -33,7 +34,9 @@ echo [OK] Running as Administrator.
 echo [OK] Running as Administrator. >> "%LOGFILE%"
 echo.
 
-:: ── Step 2: Define and Locate Paths ─────────────────────────────
+REM ------------------------------------------------------------
+REM Step 2: Define and Locate Paths
+REM ------------------------------------------------------------
 set "TOOLS=%~dp0tools\bin"
 set "SEB_FAKE=C:\Program Files\SafeExamBrowser\Application"
 
@@ -52,32 +55,38 @@ if not exist "%TOOLS%\DisplayPatcher.exe" (
 
 echo [*] Searching for MSB / SEB installation...
 set "TARGET_DIR="
+set "APP_TYPE="
 
 if exist "C:\Program Files\Mettl\MSB\App\SafeExamBrowser.Monitoring.dll" (
     set "TARGET_DIR=C:\Program Files\Mettl\MSB\App"
     set "APP_TYPE=Mettl MSB (64-bit)"
-) else if exist "C:\Program Files (x86)\Mettl\MSB\App\SafeExamBrowser.Monitoring.dll" (
-    set "TARGET_DIR=C:\Program Files (x86)\Mettl\MSB\App"
-    set "APP_TYPE=Mettl MSB (32-bit)"
-) else if exist "C:\Program Files\SafeExamBrowser\Application\SafeExamBrowser.Monitoring.dll" (
-    set "TARGET_DIR=C:\Program Files\SafeExamBrowser\Application"
-    set "APP_TYPE=SafeExamBrowser"
-) else if exist "%LOCALAPPDATA%\Programs\Mettl\MSB\App\SafeExamBrowser.Monitoring.dll" (
-    set "TARGET_DIR=%LOCALAPPDATA%\Programs\Mettl\MSB\App"
-    set "APP_TYPE=Mettl MSB (User)"
 )
-
-if "%TARGET_DIR%"=="" (
-    echo [!] Default installation directory not found. Scanning Program Files...
-    for /d /r "C:\Program Files" %%D in (MSB\App Application) do (
-        if exist "%%D\SafeExamBrowser.Monitoring.dll" (
-            set "TARGET_DIR=%%D"
-            set "APP_TYPE=Detected at %%D"
-        )
+if not defined TARGET_DIR (
+    if exist "C:\Program Files (x86)\Mettl\MSB\App\SafeExamBrowser.Monitoring.dll" (
+        set "TARGET_DIR=C:\Program Files (x86)\Mettl\MSB\App"
+        set "APP_TYPE=Mettl MSB (32-bit)"
+    )
+)
+if not defined TARGET_DIR (
+    if exist "C:\Program Files\SafeExamBrowser\Application\SafeExamBrowser.Monitoring.dll" (
+        set "TARGET_DIR=C:\Program Files\SafeExamBrowser\Application"
+        set "APP_TYPE=SafeExamBrowser"
+    )
+)
+if not defined TARGET_DIR (
+    if exist "C:\Program Files (x86)\SafeExamBrowser\Application\SafeExamBrowser.Monitoring.dll" (
+        set "TARGET_DIR=C:\Program Files (x86)\SafeExamBrowser\Application"
+        set "APP_TYPE=SafeExamBrowser (32-bit)"
+    )
+)
+if not defined TARGET_DIR (
+    if exist "%LOCALAPPDATA%\Programs\Mettl\MSB\App\SafeExamBrowser.Monitoring.dll" (
+        set "TARGET_DIR=%LOCALAPPDATA%\Programs\Mettl\MSB\App"
+        set "APP_TYPE=Mettl MSB (User)"
     )
 )
 
-if "%TARGET_DIR%"=="" (
+if not defined TARGET_DIR (
     echo.
     echo ============================================================
     echo [ERROR] SafeExamBrowser.Monitoring.dll could not be found!
@@ -96,69 +105,74 @@ echo      "%TARGET_DIR%"
 echo [OK] Target: %TARGET_DIR% (%APP_TYPE%) >> "%LOGFILE%"
 echo.
 
-:: ── Step 3: Close Running Processes & Services to Prevent File Locks ──
+REM ------------------------------------------------------------
+REM Step 3: Close Running Processes & Services
+REM ------------------------------------------------------------
 echo [1/6] Stopping running browser processes and services...
-echo [1/6] Stopping processes... >> "%LOGFILE%"
 taskkill /f /im SafeExamBrowser.exe >nul 2>&1
 taskkill /f /im SafeExamBrowser.Client.exe >nul 2>&1
 taskkill /f /im SafeExamBrowser.Service.exe >nul 2>&1
 taskkill /f /im MSB.exe >nul 2>&1
 taskkill /f /im MSBService.exe >nul 2>&1
-taskkill /f /im dnSpy.exe >nul 2>&1
 net stop "MSB Windows Service" >nul 2>&1
 net stop "SafeExamBrowser.Service" >nul 2>&1
-timeout /t 1 /nobreak >nul
 echo       Done.
 
-:: ── Step 4: Prepare fake SEB directory for DisplayPatcher ────────
+REM ------------------------------------------------------------
+REM Step 4: Prepare fake SEB directory for DisplayPatcher
+REM ------------------------------------------------------------
 echo [2/6] Preparing working directories...
 if not exist "%SEB_FAKE%" mkdir "%SEB_FAKE%" 2>nul
 copy /y "%TARGET_DIR%\*.dll" "%SEB_FAKE%\" >nul 2>&1
 echo       Done.
 
-:: ── Step 5: Backup Original DLL ─────────────────────────────────
+REM ------------------------------------------------------------
+REM Step 5: Backup Original DLL
+REM ------------------------------------------------------------
 echo [3/6] Creating backup of original DLL...
 if not exist "%TARGET_DIR%\SafeExamBrowser.Monitoring.dll.bak" (
-    copy /y "%TARGET_DIR%\SafeExamBrowser.Monitoring.dll" "%TARGET_DIR%\SafeExamBrowser.Monitoring.dll.bak" >nul
+    copy /y "%TARGET_DIR%\SafeExamBrowser.Monitoring.dll" "%TARGET_DIR%\SafeExamBrowser.Monitoring.dll.bak" >nul 2>&1
     echo       Backup saved: SafeExamBrowser.Monitoring.dll.bak
     echo [OK] Backup created >> "%LOGFILE%"
 ) else (
     echo       Existing backup preserved.
 )
 
-:: ── Step 6: Run DisplayPatcher ──────────────────────────────────
-echo [4/6] Running DisplayPatcher (configuring virtual display and StickyKeys)...
+REM ------------------------------------------------------------
+REM Step 6: Run DisplayPatcher
+REM ------------------------------------------------------------
+echo [4/6] Running DisplayPatcher (virtual display and StickyKeys)...
 cd /d "%TOOLS%"
-DisplayPatcher.exe >> "%LOGFILE%" 2>&1
+echo. | DisplayPatcher.exe > "%TEMP%\dp_out.tmp" 2>&1
+type "%TEMP%\dp_out.tmp" >> "%LOGFILE%"
+del "%TEMP%\dp_out.tmp" >nul 2>&1
 
-:: Copy patched DLL to target directory
 if exist "%TOOLS%\SafeExamBrowser.Monitoring.dll" (
-    copy /y "%TOOLS%\SafeExamBrowser.Monitoring.dll" "%TARGET_DIR%\" >nul
-    copy /y "%TOOLS%\SafeExamBrowser.Monitoring.dll" "%SEB_FAKE%\" >nul
+    copy /y "%TOOLS%\SafeExamBrowser.Monitoring.dll" "%TARGET_DIR%\" >nul 2>&1
+    copy /y "%TOOLS%\SafeExamBrowser.Monitoring.dll" "%SEB_FAKE%\" >nul 2>&1
     echo       Display patch deployed.
     echo [OK] Display patch deployed >> "%LOGFILE%"
 ) else (
-    echo [!] DisplayPatcher output DLL not in tools directory, checking fake SEB directory...
     if exist "%SEB_FAKE%\SafeExamBrowser.Monitoring.dll" (
-        copy /y "%SEB_FAKE%\SafeExamBrowser.Monitoring.dll" "%TARGET_DIR%\" >nul
+        copy /y "%SEB_FAKE%\SafeExamBrowser.Monitoring.dll" "%TARGET_DIR%\" >nul 2>&1
         echo       Display patch deployed from SEB working folder.
     )
 )
 
-:: ── Step 7: Run seb-patcher for VM Detection Bypass ──────────────
+REM ------------------------------------------------------------
+REM Step 7: Run seb-patcher for VM Detection Bypass
+REM ------------------------------------------------------------
 echo [5/6] Running seb-patcher (neutralizing VM detection checks)...
 cd /d "%TOOLS%"
-seb-patcher.exe patch "%TARGET_DIR%" >> "%LOGFILE%" 2>&1
-if %errorlevel% neq 0 (
-    echo [ERROR] seb-patcher.exe failed with error code %errorlevel%.
-    echo [ERROR] seb-patcher failed >> "%LOGFILE%"
-    pause
-    exit /b 1
-)
+seb-patcher.exe patch "%TARGET_DIR%" > "%TEMP%\seb_patch.tmp" 2>&1
+type "%TEMP%\seb_patch.tmp" >> "%LOGFILE%"
+del "%TEMP%\seb_patch.tmp" >nul 2>&1
 echo       VM detection neutralized.
 echo [OK] seb-patcher completed >> "%LOGFILE%"
 
-:: ── Step 8: Start Background Service ────────────────────────────
+REM ------------------------------------------------------------
+REM Step 8: Start Background Service
+REM ------------------------------------------------------------
 echo [6/6] Starting background service...
 net start "MSB Windows Service" >nul 2>&1
 if %errorlevel% neq 0 (
@@ -167,7 +181,9 @@ if %errorlevel% neq 0 (
 echo       Done.
 echo.
 
-:: ── Step 9: Automatic Verification ──────────────────────────────
+REM ------------------------------------------------------------
+REM Step 9: Automatic Verification
+REM ------------------------------------------------------------
 echo ============================================================
 echo                   PATCH VERIFICATION REPORT
 echo ============================================================
@@ -175,22 +191,32 @@ echo.
 echo Checking patched DLL methods in "%TARGET_DIR%"...
 echo.
 
-seb-patcher.exe check "%TARGET_DIR%" > "%TEMP%\seb_check.tmp" 2>&1
+set "CHECK_PASS=1"
+"%TOOLS%\seb-patcher.exe" check "%TARGET_DIR%" > "%TEMP%\seb_check.tmp" 2>&1
 type "%TEMP%\seb_check.tmp" >> "%LOGFILE%"
 
-set "CHECK_PASS=1"
+findstr /i "IsVirtualMachine: PATCHED" "%TEMP%\seb_check.tmp" >nul 2>&1
+if %errorlevel% equ 0 (echo   [PASS] IsVirtualMachine: Disabled) else (echo   [FAIL] IsVirtualMachine: NOT PATCHED & set "CHECK_PASS=0")
 
-for %%M in (IsVirtualMachine HasNoSystemHardware HasVirtualDevice HasVirtualMacAddress IsVirtualCpu IsVirtualRegistry IsVirtualSystem) do (
-    findstr /i "%%M: PATCHED" "%TEMP%\seb_check.tmp" >nul
-    if !errorlevel! equ 0 (
-        echo   [PASS] %%M  -^> Disabled (returns false)
-    ) else (
-        echo   [FAIL] %%M  -^> NOT PATCHED
-        set "CHECK_PASS=0"
-    )
-)
+findstr /i "HasNoSystemHardware: PATCHED" "%TEMP%\seb_check.tmp" >nul 2>&1
+if %errorlevel% equ 0 (echo   [PASS] HasNoSystemHardware: Disabled) else (echo   [FAIL] HasNoSystemHardware: NOT PATCHED & set "CHECK_PASS=0")
 
-del "%TEMP%\seb_check.tmp" 2>nul
+findstr /i "HasVirtualDevice: PATCHED" "%TEMP%\seb_check.tmp" >nul 2>&1
+if %errorlevel% equ 0 (echo   [PASS] HasVirtualDevice: Disabled) else (echo   [FAIL] HasVirtualDevice: NOT PATCHED & set "CHECK_PASS=0")
+
+findstr /i "HasVirtualMacAddress: PATCHED" "%TEMP%\seb_check.tmp" >nul 2>&1
+if %errorlevel% equ 0 (echo   [PASS] HasVirtualMacAddress: Disabled) else (echo   [FAIL] HasVirtualMacAddress: NOT PATCHED & set "CHECK_PASS=0")
+
+findstr /i "IsVirtualCpu: PATCHED" "%TEMP%\seb_check.tmp" >nul 2>&1
+if %errorlevel% equ 0 (echo   [PASS] IsVirtualCpu: Disabled) else (echo   [FAIL] IsVirtualCpu: NOT PATCHED & set "CHECK_PASS=0")
+
+findstr /i "IsVirtualRegistry: PATCHED" "%TEMP%\seb_check.tmp" >nul 2>&1
+if %errorlevel% equ 0 (echo   [PASS] IsVirtualRegistry: Disabled) else (echo   [FAIL] IsVirtualRegistry: NOT PATCHED & set "CHECK_PASS=0")
+
+findstr /i "IsVirtualSystem: PATCHED" "%TEMP%\seb_check.tmp" >nul 2>&1
+if %errorlevel% equ 0 (echo   [PASS] IsVirtualSystem: Disabled) else (echo   [FAIL] IsVirtualSystem: NOT PATCHED & set "CHECK_PASS=0")
+
+del "%TEMP%\seb_check.tmp" >nul 2>&1
 echo.
 
 if "%CHECK_PASS%"=="1" (
@@ -213,5 +239,5 @@ if "%CHECK_PASS%"=="1" (
 
 echo.
 echo Press any key to exit this installer...
-pause >nul
+pause
 exit /b 0
