@@ -100,3 +100,30 @@ See [GUIDE.md](GUIDE.md) for the complete step-by-step walkthrough.
 ---
 
 > For the full technical explanation of IL patching, VMX settings, detection risks, and troubleshooting, see [DEEP-DIVE.md](DEEP-DIVE.md).
+
+
+---
+
+## Standard Safe Exam Browser (SEB v3.10.x)
+
+> Use this section if you have **standard SEB** from your institution (not Mettl/MSB).
+
+| File | Purpose |
+|------|---------|
+| [seb/SEB-GUIDE.md](seb/SEB-GUIDE.md) | **Start here for standard SEB** — complete setup guide |
+| [seb/PATCH-SEB.cmd](seb/PATCH-SEB.cmd) | One-click patcher — double-click inside VM as Admin |
+| [seb/PATCH-SEB.ps1](seb/PATCH-SEB.ps1) | PowerShell patcher (called by PATCH-SEB.cmd) |
+
+### Quick Start (Standard SEB)
+
+**1. Patch VMX** (host, VM off):
+```powershell
+.\patch_vmx.ps1
+```
+
+**2. Inside VM** (after installing SEB and copying this toolkit folder):
+```
+Double-click  seb\PATCH-SEB.cmd
+```
+
+See [seb/SEB-GUIDE.md](seb/SEB-GUIDE.md) for the full walkthrough.
